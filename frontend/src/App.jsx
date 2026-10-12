@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   Sparkles,
   LogOut,
@@ -101,6 +101,25 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('profile')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [pendingLeaveAction, setPendingLeaveAction] = useState(null)
+  const [saleBusy, setSaleBusy] = useState(false)
+  const [saleDraft, setSaleDraft] = useState(null)
+  const [returnSection, setReturnSection] = useState(null)
+  const userKey = user?.id || user?.email
+  const [previousUserKey, setPreviousUserKey] = useState(userKey)
+  if (previousUserKey !== userKey) {
+    setPreviousUserKey(userKey)
+    setSaleDraft(null)
+    setReturnSection(null)
+  }
+  const currentDraft = saleDraft && saleDraft.owner === userKey ? saleDraft.value : null
+  const saveSaleDraft = useCallback((value) => setSaleDraft({ owner: userKey, value }), [userKey])
+
+  useEffect(() => {
+    if (!currentDraft) return
+    const warn = (event) => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [currentDraft])
 
   const { group: activeGroup, item: activeItem } = findActive(activeSection)
 
@@ -112,6 +131,7 @@ export default function App() {
 
   // Ações que tiram o usuário da tela atual passam por aqui para não perder alterações não salvas
   const guardLeave = (action) => {
+    if (saleBusy) return
     if (hasUnsavedChanges) {
       setPendingLeaveAction(() => action)
       return
@@ -124,7 +144,21 @@ export default function App() {
     guardLeave(() => setActiveSection(sectionKey))
   }
 
-  const handleLogout = () => guardLeave(logout)
+  const navigateContext = (sectionKey) => guardLeave(() => {
+    setReturnSection({ owner: userKey, section: activeSection })
+    setActiveSection(sectionKey)
+  })
+
+  const handleLogout = () => {
+    if (saleBusy) return
+    const leave = () => {
+      setSaleDraft(null)
+      setReturnSection(null)
+      logout()
+    }
+    if (currentDraft && !hasUnsavedChanges) setPendingLeaveAction(() => leave)
+    else guardLeave(leave)
+  }
 
   const confirmLeave = () => {
     const action = pendingLeaveAction
@@ -147,15 +181,15 @@ export default function App() {
       case 'categories':
         return <CategoryManager />
       case 'sales':
-        return <SalesManager onNavigate={navigateTo} />
+        return <SalesManager key={userKey} onNavigate={navigateContext} draft={currentDraft} onDraftChange={saveSaleDraft} onBusyChange={setSaleBusy} />
       case 'cashflow':
-        return <MonthlyFlowDashboard />
+        return <MonthlyFlowDashboard onNavigate={navigateContext} />
       case 'payment-methods':
         return <PaymentMethodSettings onDirtyChange={setHasUnsavedChanges} />
       case 'costs':
         return <CostsDashboard />
       case 'pricing':
-        return <PricingCalculator />
+        return <PricingCalculator onNavigate={navigateContext} />
       default:
         return <ProfilePanel user={user} onUserUpdate={updateUser} />
     }
@@ -262,7 +296,17 @@ export default function App() {
         </div>
 
         <main className="flex-1 w-full px-4 sm:px-6 lg:px-10 py-8 lg:py-10">
-          <div className="w-full max-w-6xl mx-auto">{renderSection()}</div>
+          <div className="w-full max-w-6xl mx-auto">
+            {returnSection?.owner === userKey && returnSection.section !== activeSection && (
+              <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                <p>Você abriu este módulo para continuar uma tarefa. {currentDraft && 'O rascunho da venda está mantido apenas nesta sessão; recarregar ou sair apaga os dados.'}</p>
+                <button type="button" className="mt-2 font-semibold underline" onClick={() => guardLeave(() => { setActiveSection(returnSection.section); setReturnSection(null) })}>
+                  Voltar para {findActive(returnSection.section).item.label}
+                </button>
+              </div>
+            )}
+            {renderSection()}
+          </div>
         </main>
 
         <footer className="w-full px-4 sm:px-6 lg:px-10 py-6 text-center text-xs text-slate-400">

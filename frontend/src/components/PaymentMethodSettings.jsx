@@ -391,7 +391,7 @@ export default function PaymentMethodSettings({ onDirtyChange }) {
 
       {/* Feedback Toast / Alert */}
       {feedback && (
-        <div
+        <div role={feedback.type === 'error' ? 'alert' : 'status'}
           className={`flex items-start gap-3 p-4 rounded-xl text-xs border ${
             feedback.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'

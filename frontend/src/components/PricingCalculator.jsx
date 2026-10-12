@@ -1,3 +1,4 @@
+import useDraft from '../hooks/useDraft'
 import { useState, useEffect } from 'react'
 import {
   Calculator,
@@ -75,16 +76,20 @@ export default function PricingCalculator() {
   const [feeMethod, setFeeMethod] = useState('CREDITO_A_VISTA')
   const [feeInstallments, setFeeInstallments] = useState(2)
 
+  useDraft({ formData, selectedProductId, useAutomaticFixedCosts, discountPercent, useConfiguredFee, feeMethod, feeInstallments })
+  const [savedRateioForm, setSavedRateioForm] = useState(rateioForm)
+  const { dirty: rateioDirty } = useDraft(rateioForm, savedRateioForm)
+
   const applyRateioSummary = (data) => {
     setRateioSummary(data)
-    setRateioForm((prev) => ({
-      ...prev,
+    const next = {
       revenueBaselineMode: data.revenueBaselineMode || 'TARGET_REVENUE',
       revenueBaseline: data.revenueBaseline != null ? String(data.revenueBaseline) : '',
       automaticRateio: data.automaticRateio ?? true,
-      manualAllocatedFixedCostPercent:
-        data.allocatedFixedCostPercent != null ? String(data.allocatedFixedCostPercent) : ''
-    }))
+      manualAllocatedFixedCostPercent: data.allocatedFixedCostPercent != null ? String(data.allocatedFixedCostPercent) : ''
+    }
+    setRateioForm(next)
+    setSavedRateioForm(next)
   }
 
   useEffect(() => {
@@ -129,7 +134,7 @@ export default function PricingCalculator() {
     ? getPillById(selectedPillId)
     : selectContextualPill({
         action: activeContextAction,
-        discountActive: activeContextAction === 'discount' || Number(discountPercent) > 0,
+        discountActive: activeContextAction === 'discount',
         fixedCostPercent: effectiveFixedPercent,
         variableCostPercent: effectiveVariablePercent
       })
@@ -606,7 +611,7 @@ export default function PricingCalculator() {
                   <button
                     type="button"
                     onClick={handleSaveRateioConfig}
-                    disabled={savingRateio}
+                    disabled={savingRateio || !rateioDirty}
                     className="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
                   >
                     {savingRateio ? (

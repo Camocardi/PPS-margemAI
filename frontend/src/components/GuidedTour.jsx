@@ -22,8 +22,13 @@ export default function GuidedTour({ steps, rootRef, onClose }) {
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
     }
+    const containFocus = event => {
+      if (!dialogRef.current?.contains(event.target)) closeRef.current?.focus({ preventScroll: true })
+    }
+    document.addEventListener('focusin', containFocus)
     document.addEventListener('keydown', handleKey)
     return () => {
+      document.removeEventListener('focusin', containFocus)
       document.removeEventListener('keydown', handleKey)
       if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true })
     }

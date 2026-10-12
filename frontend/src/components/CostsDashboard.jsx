@@ -1,3 +1,4 @@
+import useDraft from '../hooks/useDraft'
 import { useState, useEffect } from 'react'
 import { Package, Landmark, Wallet } from 'lucide-react'
 import PageHeader from './PageHeader'
@@ -8,6 +9,7 @@ import productService from '../services/productService'
 import { FIXED_COST_CATEGORIES, VARIABLE_COST_CATEGORIES } from '../constants/costCategories'
 
 export default function CostsDashboard() {
+  const { guard } = useDraft(null)
   const [activeTab, setActiveTab] = useState('fixed')
   const [products, setProducts] = useState([])
 
@@ -66,7 +68,7 @@ export default function CostsDashboard() {
             <button
               key={key}
               type="button"
-              onClick={() => setActiveTab(key)}
+              onClick={() => guard(() => setActiveTab(key))}
               className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                 activeTab === key
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'

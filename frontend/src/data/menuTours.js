@@ -15,7 +15,7 @@ export const MENU_TOURS = {
     step('accounts-filter', 'Olhe uma conta de cada vez', 'Escolha uma conta para conferir saldo e movimentos.', 'Conferir com o extrato ajuda a encontrar registros esquecidos.')
   ],
   sales: [
-    step('sales-new', 'Vendeu? Registre aqui', 'Abra a venda rápida e confira item, preço e pagamento.', 'Vendas esquecidas deixam seu faturamento incompleto.'),
+    step('sales-form', 'Vendeu? Registre aqui', 'Confira item, preço e pagamento neste formulário.', 'Vendas esquecidas deixam seu faturamento incompleto.'),
     step('sales-metrics', 'Veja o que sobra', 'O valor líquido desconta as taxas do faturamento.', 'Compare as formas de pagamento para entender o peso das taxas.'),
     step('sales-filters', 'Confira seu histórico', 'Filtre por pagamento e revise os lançamentos.')
   ],
@@ -44,3 +44,8 @@ export const MENU_TOURS = {
     step('fees-save', 'Faça a mudança valer', 'Salve as alterações para usá-las nos próximos cálculos.')
   ]
 }
+
+export const PROFILE_EDIT_TOUR = [
+  step('profile-form', 'Atualize os dados do negócio', 'Revise nome, segmento e teto de faturamento.'),
+  step('profile-save', 'Confira antes de salvar', 'Salve suas mudanças ou volte para o perfil. Alterações pendentes ficam protegidas.')
+]

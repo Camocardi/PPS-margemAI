@@ -1,3 +1,4 @@
+import useDraft from '../hooks/useDraft'
 import PageHeader from './PageHeader'
 import { useState, useEffect, useRef } from 'react'
 import {
@@ -17,6 +18,7 @@ import CategoryForm from './CategoryForm'
 const PAGE_SIZE = 50
 
 export default function CategoryManager() {
+  const { guard } = useDraft(null)
   const [categories, setCategories] = useState([])
   const [totalElements, setTotalElements] = useState(0)
   const [selectedType, setSelectedType] = useState('')
@@ -24,6 +26,7 @@ export default function CategoryManager() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [formVersion, setFormVersion] = useState(0)
   const [showForm, setShowForm] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
   const [feedback, setFeedback] = useState(null)
@@ -68,11 +71,13 @@ export default function CategoryManager() {
   }
 
   const handleNew = () => {
+    setFormVersion(version => version + 1)
     setEditingCategory(null)
     setShowForm(true)
   }
 
   const handleEdit = (category) => {
+    setFormVersion(version => version + 1)
     setEditingCategory(category)
     setShowForm(true)
   }
@@ -133,7 +138,7 @@ export default function CategoryManager() {
           <button
             type="button"
             data-tour="categories-new"
-            onClick={handleNew}
+            onClick={() => guard(handleNew)}
             className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium shadow-sm transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -143,6 +148,7 @@ export default function CategoryManager() {
       {showForm && (
         <div ref={formRef}>
           <CategoryForm
+            key={formVersion}
             initialCategory={editingCategory}
             onCancel={() => {
               setShowForm(false)
@@ -230,7 +236,7 @@ export default function CategoryManager() {
             </p>
             <button
               type="button"
-              onClick={handleNew}
+              onClick={() => guard(handleNew)}
               className="inline-flex items-center gap-2 py-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-medium"
             >
               <Plus className="w-4 h-4" />
@@ -307,7 +313,7 @@ export default function CategoryManager() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleEdit(category)}
+                      onClick={() => guard(() => handleEdit(category))}
                       title="Editar"
                       className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer"
                     >

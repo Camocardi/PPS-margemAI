@@ -176,6 +176,11 @@ export default function CostForm({ kind, service, categories, initialCost, onCan
         <p className="text-sm text-slate-500">{labels.description}</p>
       </div>
 
+      {kind === 'fixed' && initialCost && (
+        <p className="mb-4 text-xs text-amber-800 bg-amber-50 rounded-xl p-3">
+          As competências até o mês atual serão preservadas. As alterações valem para os próximos meses.
+        </p>
+      )}
       {serverError && (
         <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5 shrink-0" />

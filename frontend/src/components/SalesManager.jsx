@@ -20,7 +20,7 @@ import PageHeader from './PageHeader'
 import { formatCurrencyBRL } from '../utils/formatters'
 import { PAYMENT_METHODS } from '../constants/sales'
 
-export default function SalesManager({ onNavigate }) {
+export default function SalesManager({ onNavigate, onDirtyChange }) {
   const [selectedMethod, setSelectedMethod] = useState('')
   const [showQuickForm, setShowQuickForm] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
@@ -149,11 +149,9 @@ export default function SalesManager({ onNavigate }) {
       </div>
 
       {/* Formulário de Registro Rápido */}
-      {showQuickForm && (
-        <div className="transition-all duration-300">
-          <SalesForm onSaleCreated={recordSale} onNavigate={onNavigate} />
-        </div>
-      )}
+      <div hidden={!showQuickForm}>
+        <SalesForm onSaleCreated={recordSale} onNavigate={onNavigate} onDirtyChange={onDirtyChange} />
+      </div>
 
       {/* Histórico de Vendas */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -221,6 +219,7 @@ export default function SalesManager({ onNavigate }) {
                   <th className="py-3 px-4">Item / Produto</th>
                   <th className="py-3 px-4 text-center">Qtd</th>
                   <th className="py-3 px-4 text-right">Valor Bruto</th>
+                  <th className="py-3 px-4 text-right">Custo da operação</th>
                   <th className="py-3 px-4">Pagamento</th>
                   <th className="py-3 px-4 text-right">Taxa (-%)</th>
                   <th className="py-3 px-4 text-right">Líquido no Caixa</th>
@@ -253,6 +252,14 @@ export default function SalesManager({ onNavigate }) {
                     </td>
                     <td className="py-3.5 px-4 text-right font-medium text-slate-800">
                       {formatCurrencyBRL(sale.grossAmount)}
+                    </td>
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      {formatCurrencyBRL(sale.operationCost)}
+                      {sale.costEstimated && (
+                        <span className="block text-[11px] text-amber-700" title="Venda antiga: custo estimado a partir do cadastro disponível na atualização.">
+                          Estimado
+                        </span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">

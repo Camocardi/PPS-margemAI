@@ -147,7 +147,7 @@ export default function App() {
       case 'categories':
         return <CategoryManager />
       case 'sales':
-        return <SalesManager onNavigate={navigateTo} />
+        return <SalesManager onNavigate={navigateTo} onDirtyChange={setHasUnsavedChanges} />
       case 'cashflow':
         return <MonthlyFlowDashboard />
       case 'payment-methods':

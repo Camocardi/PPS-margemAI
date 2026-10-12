@@ -19,13 +19,14 @@ import usePaymentFees from '../hooks/usePaymentFees'
 import { calculateSaleFee, formatFeePercent } from '../utils/paymentFees'
 import { formatCurrencyBRL } from '../utils/formatters'
 
-export default function SalesForm({ onSaleCreated, onNavigate }) {
+export default function SalesForm({ onSaleCreated, onNavigate, onDirtyChange }) {
   const [products, setProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState('')
   const [customDescription, setCustomDescription] = useState('')
   const [isCustomItem, setIsCustomItem] = useState(false)
   const [quantity, setQuantity] = useState(1)
+  const [unitCost, setUnitCost] = useState('')
   const [unitPrice, setUnitPrice] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('PIX')
   const [installments, setInstallments] = useState(1)
@@ -35,6 +36,28 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
   const [submitting, setSubmitting] = useState(false)
   const [feedback, setFeedback] = useState(null)
   const { getFee, error: feesError } = usePaymentFees()
+
+  const unsavedCount = [
+    selectedProductId, customDescription, unitPrice, unitCost, notes,
+    quantity !== 1, paymentMethod !== 'PIX', showCustomFee, customFee
+  ].filter(Boolean).length
+  const hasUnsavedChanges = unsavedCount > 0
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges)
+  }, [hasUnsavedChanges, onDirtyChange])
+
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange])
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return undefined
+    const handleBeforeUnload = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
 
   useEffect(() => {
     let cancelled = false
@@ -58,6 +81,7 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
   }, [])
 
   const handleProductSelect = (prodId) => {
+    setUnitCost('')
     setSelectedProductId(prodId)
     if (!prodId) {
       setUnitPrice('')
@@ -119,6 +143,7 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
       description: isCustomItem ? customDescription.trim() : (products.find(p => p.id === selectedProductId)?.name || customDescription.trim()),
       quantity: Number(quantity),
       unitPrice: effectivePrice,
+      unitCost: unitCost === '' ? null : Number(unitCost),
       paymentMethod,
       installments: paymentMethod === 'CREDITO_PARCELADO' ? Number(installments) : 1,
       customFeePercentage: showCustomFee && customFee !== '' ? Number(customFee) : null,
@@ -134,10 +159,13 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
       }
       setCustomDescription('')
       setUnitPrice('')
+      setUnitCost('')
       setQuantity(1)
       setNotes('')
       setCustomFee('')
       setShowCustomFee(false)
+      setPaymentMethod('PIX')
+      setInstallments(1)
     } catch (err) {
       setFeedback({ type: 'error', message: err.message || 'Erro ao registrar venda.' })
     } finally {
@@ -174,6 +202,7 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
         <button
           type="button"
           onClick={() => {
+            setUnitCost('')
             setIsCustomItem(!isCustomItem)
             setSelectedProductId('')
             setUnitPrice('')
@@ -205,6 +234,7 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
         </div>
       )}
 
+      {hasUnsavedChanges && <p className="mb-4 text-xs text-amber-700">{unsavedCount} alterações não salvas</p>}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           {/* Seleção do Produto ou Descrição do Item */}
@@ -283,6 +313,29 @@ export default function SalesForm({ onSaleCreated, onNavigate }) {
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="sale-unit-cost" className="block text-xs font-semibold text-slate-600 mb-1.5">
+            Custo unitário da operação (R$)
+          </label>
+          <input
+            id="sale-unit-cost"
+            type="number"
+            min="0"
+            step="0.01"
+            value={unitCost}
+            onChange={(event) => setUnitCost(event.target.value)}
+            placeholder={isCustomItem ? '0,00' : 'Usar custo do catálogo'}
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <p className="mt-2 text-xs text-slate-600">
+            {isCustomItem
+              ? 'Informe o custo do item avulso. Se deixar vazio, será registrado R$ 0,00.'
+              : 'Se deixar vazio, usa os custos vinculados ao produto; sem valor vinculado, usa o custo base manual.'}
+            {' '}O custo fica guardado nesta venda e não muda quando o catálogo for alterado.
+            {' '}Um valor informado aqui vale apenas para esta venda e substitui o custo do catálogo.
+          </p>
         </div>
 
         {/* Métodos de Pagamento */}

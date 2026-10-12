@@ -1,3 +1,4 @@
+import EmptyState, { EmptyStateAction } from './EmptyState'
 import { useState, useEffect, useRef } from 'react'
 import {
   Package,
@@ -162,7 +163,7 @@ export default function ProductManager() {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setLoading(true); setSearchTerm(e.target.value) }}
                 placeholder="Buscar por nome do produto ou serviço..."
                 className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
               />
@@ -171,7 +172,7 @@ export default function ProductManager() {
             <div className="flex rounded-xl bg-slate-200/70 p-1 self-start">
               <button
                 type="button"
-                onClick={() => setSelectedType('')}
+                onClick={() => { if (selectedType !== '') setLoading(true); setSelectedType('') }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   selectedType === ''
                     ? 'bg-white text-indigo-600 shadow-sm'
@@ -182,7 +183,7 @@ export default function ProductManager() {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedType('PRODUTO')}
+                onClick={() => { if (selectedType !== 'PRODUTO') setLoading(true); setSelectedType('PRODUTO') }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   selectedType === 'PRODUTO'
                     ? 'bg-white text-indigo-600 shadow-sm'
@@ -193,7 +194,7 @@ export default function ProductManager() {
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedType('SERVICO')}
+                onClick={() => { if (selectedType !== 'SERVICO') setLoading(true); setSelectedType('SERVICO') }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   selectedType === 'SERVICO'
                     ? 'bg-white text-indigo-600 shadow-sm'
@@ -236,21 +237,23 @@ export default function ProductManager() {
             </button>
           </div>
         ) : products.length === 0 ? (
-          <div className="p-12 text-center">
-            <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-base font-semibold text-slate-700 mb-1">Nenhum item encontrado</p>
-            <p className="text-xs text-slate-500 mb-4">
-              Cadastre seu primeiro produto ou serviço para acompanhar margens e custos.
-            </p>
-            <button
-              type="button"
-              onClick={handleNew}
-              className="inline-flex items-center gap-2 py-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              Cadastrar Primeiro Item
-            </button>
-          </div>
+          <EmptyState
+            Icon={Package}
+            title={selectedType || searchTerm.trim() ? 'Nenhum resultado para os filtros selecionados' : 'Nenhum item cadastrado'}
+            description={selectedType || searchTerm.trim()
+              ? 'Altere a busca ou limpe os filtros para ver os registros disponíveis.'
+              : 'Cadastre produtos e serviços para reutilizá-los nas vendas e acompanhar seus custos e margens.'}
+          >
+            {selectedType || searchTerm.trim() ? (
+              <EmptyStateAction onClick={() => {
+                setLoading(true)
+                setSelectedType('')
+                setSearchTerm('')
+              }}>Limpar filtros</EmptyStateAction>
+            ) : (
+              <EmptyStateAction onClick={handleNew}>Cadastrar primeiro item</EmptyStateAction>
+            )}
+          </EmptyState>
         ) : (
           <div className="divide-y divide-slate-100">
             {products.map((item) => (

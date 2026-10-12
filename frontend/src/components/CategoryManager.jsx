@@ -1,3 +1,4 @@
+import PageHeader from './PageHeader'
 import { useState, useEffect, useRef } from 'react'
 import {
   Tags,
@@ -128,6 +129,16 @@ export default function CategoryManager() {
 
   return (
     <div className="w-full space-y-6">
+      <PageHeader Icon={Tags} title="Padrões de Preço" description="Defina parâmetros de preço para seus produtos e serviços.">
+          <button
+            type="button"
+            onClick={handleNew}
+            className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium shadow-sm transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Novo padrão
+          </button>
+      </PageHeader>
       {showForm && (
         <div ref={formRef}>
           <CategoryForm
@@ -142,28 +153,6 @@ export default function CategoryManager() {
       )}
 
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
-              <Tags className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Padrões de precificação</h2>
-              <p className="text-xs text-slate-500">
-                Defina margem, impostos, taxas e desconto padrão para os produtos e serviços que você cadastrar.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleNew}
-            className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium shadow-sm transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Novo padrão
-          </button>
-        </div>
 
         <div className="p-4 sm:p-6 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="flex flex-1 flex-col sm:flex-row gap-3">

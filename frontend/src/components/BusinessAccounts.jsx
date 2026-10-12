@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Landmark, CircleHelp } from 'lucide-react'
-import AccountsTour from './AccountsTour'
+import { useEffect, useState } from 'react'
+import { Landmark } from 'lucide-react'
 import PageHeader from './PageHeader'
 import TipButton from './TipButton'
 import { SEBRAE_PILLS } from '../data/sebraePills'
@@ -16,13 +15,6 @@ const fieldClass = 'mt-1 w-full rounded-xl border border-slate-200 p-2.5 bg-whit
 const buttonClass = 'rounded-lg bg-indigo-600 text-white px-4 py-2 disabled:opacity-50'
 
 export default function BusinessAccounts({ onDirtyChange }) {
-  const [tourOpen, setTourOpen] = useState(() => {
-    try { return localStorage.getItem('margemai.accounts-tour.v1') !== 'seen' } catch { return true }
-  })
-  const closeTour = useCallback(() => {
-    setTourOpen(false)
-    try { localStorage.setItem('margemai.accounts-tour.v1', 'seen') } catch { /* O guia continua disponível sem armazenamento local. */ }
-  }, [])
   const [filter, setFilter] = useState('')
   const { accounts, movements, loading, error, reload } = useBusinessAccounts(filter)
   const [account, setAccount] = useState(emptyAccount)
@@ -59,10 +51,7 @@ export default function BusinessAccounts({ onDirtyChange }) {
   const updateMovement = e => setMovement({ ...movement, [e.target.name]: e.target.value, ...(e.target.name === 'type' ? { destinationId: '' } : {}) })
   const accountName = id => accounts.find(a => a.id === id)?.name || '—'
   return <div className="w-full space-y-6">
-    <PageHeader Icon={Landmark} title="Contas Empresariais" description="Saldos e movimentos do dinheiro do negócio." tip={<TipButton pill={SEBRAE_PILLS.find(p => p.id === 'pro-labore')} />}>
-      <button type="button" onClick={() => setTourOpen(true)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><CircleHelp className="h-4 w-4" />Como usar</button>
-    </PageHeader>
-    {tourOpen && <AccountsTour onClose={closeTour} />}
+    <PageHeader Icon={Landmark} title="Contas Empresariais" description="Saldos e movimentos do dinheiro do negócio." tip={<TipButton pill={SEBRAE_PILLS.find(p => p.id === 'pro-labore')} />} />
     {(error || failure) && <p role="alert" className="text-rose-700">{failure || error}</p>}
     {feedback && <p role="status" className="text-emerald-700">{feedback}</p>}
     {dirty && <p className="text-amber-700">{accountChanges + movementChanges} alterações não salvas</p>}

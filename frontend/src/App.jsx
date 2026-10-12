@@ -27,6 +27,7 @@ import SalesManager from './components/SalesManager'
 import PaymentMethodSettings from './components/PaymentMethodSettings'
 import MonthlyFlowDashboard from './components/MonthlyFlowDashboard'
 import BusinessAccounts from './components/BusinessAccounts'
+import SectionTour from './components/SectionTour'
 import ConfirmDialog from './components/ConfirmDialog'
 
 const NAV_GROUPS = [
@@ -267,7 +268,7 @@ export default function App() {
         </div>
 
         <main className="flex-1 w-full px-4 sm:px-6 lg:px-10 py-8 lg:py-10">
-          <div className="w-full max-w-6xl mx-auto">{renderSection()}</div>
+          <div className="w-full max-w-6xl mx-auto"><SectionTour key={activeSection} section={activeSection}>{renderSection()}</SectionTour></div>
         </main>
 
         <footer className="w-full px-4 sm:px-6 lg:px-10 py-6 text-center text-xs text-slate-400">

@@ -24,7 +24,7 @@ Todas as funcionalidades abaixo estão implementadas no backend (endpoints em `/
 | Módulo (menu) | O que o MEI faz | Card |
 |---|---|---|
 | **Conta › Meu Perfil** | Cadastro e login com JWT (access + refresh token); perfil com segmento de atuação (Comércio, Serviços, Indústria, Alimentação...) e teto anual de faturamento. | `feature/auth` |
-| **Cadastros › Catálogo** | Catálogo de produtos e serviços com custo base calculado a partir dos custos variáveis vinculados. | US-06 |
+| **Cadastros › Catálogo** | Catálogo de produtos e serviços com custo base manual ou calculado a partir dos custos variáveis vinculados. | US-06 |
 | **Financeiro › Vendas** | Registro rápido de vendas com várias formas de pagamento (dinheiro, Pix, débito, crédito à vista e parcelado), prévia do valor líquido após a taxa configurada e resumo do período. | US-10 |
 | **Financeiro › Fluxo de Caixa** | Histórico e evolução mensal de receita, custos fixos e variáveis, taxas de pagamento e saldo. | US-12 |
 | **Financeiro › Custos** | Gestão de custos fixos (com rateio) e custos variáveis por produto/serviço, com filtros por categoria. | US-04, US-05 |
@@ -37,6 +37,21 @@ Todas as funcionalidades abaixo estão implementadas no backend (endpoints em `/
 Também fazem parte do projeto: health check via Spring Boot Actuator (`/actuator/health`, INFRA-05), conteinerização com Docker Compose (INFRA-04) e uma suíte de testes de precisão financeira com `BigDecimal` (TECH-01).
 
 > Apesar do nome, a versão atual **não** integra nenhum modelo de IA/LLM: os cálculos e recomendações são regras determinísticas baseadas no método SEBRAE.
+
+---
+
+## Limites da versão atual
+
+O painel financeiro apresenta receitas pela data da venda e despesas calculadas a partir dos custos cadastrados. O saldo exibido é uma estimativa dos registros do sistema, não uma confirmação de dinheiro recebido, lucro contábil ou saldo bancário. Alterações nos custos fixos e variáveis atuais podem afetar a apuração de períodos anteriores. O painel contabiliza custos variáveis ativos vinculados aos produtos vendidos; não inclui o custo base manual de produtos sem esses vínculos nem o custo de vendas avulsas, o que pode superestimar o saldo.
+
+A configuração de prazos de liquidação não substitui um calendário de contas a receber e a pagar. A versão atual não oferece controle completo de inadimplência, cobrança, dívidas, reservas, estoque ou obrigações como emissão de DAS e entrega da DASN-SIMEI. O alerta de teto MEI acompanha faturamento; não comprova regularidade fiscal.
+
+Os cálculos dependem de custos e parâmetros completos e corretos. Não há descoberta automática de todos os custos, assistente conversacional ou integração com IA/LLM. A aplicação é acessível pelo navegador; instalação como PWA e funcionamento offline não foram validados nesta revisão. A redução de 50% no tempo de fechamento é uma meta do projeto, ainda sem resultado medido apresentado.
+
+- [Cards propostos para requisitos pendentes](docs/cards-requisitos.md).
+- [Problemas financeiros de MEIs e cobertura atual](docs/mei-problemas-financeiros-margemai.md).
+- [Revisão da documentação originalmente presente na main](docs/margemai-docs-main-desatualizadas.md).
+- [Relatório acadêmico e atualização do estado de implementação](backend/margem.md).
 
 ---
 
@@ -55,7 +70,7 @@ Também fazem parte do projeto: health check via Spring Boot Actuator (`/actuato
 ### Pré-requisitos
 
 * Docker com Docker Compose (opção 1), ou
-* JDK 21, Node.js 20+ e Docker apenas para o banco (opção 2).
+* JDK 21, Node.js 22.13+ (linha 22) ou 24+ e Docker apenas para o banco (opção 2).
 
 ### Opção 1 — tudo com Docker Compose
 
@@ -103,7 +118,7 @@ A senha do banco pode ser definida pela variável `POSTGRES_PASSWORD` (há um va
 
    A URL da API pode ser alterada com `VITE_API_URL` (padrão: `http://localhost:8080/v1`).
 
-### Testes e verificações (os mesmos do CI)
+### Testes e verificações locais
 
 ```bash
 cd backend  && ./mvnw test
@@ -111,6 +126,8 @@ cd frontend && npm run lint && npm test && npm run build
 ```
 
 ---
+
+O CI atual executa testes do backend e lint/build do frontend; a execução de Vitest no CI ainda precisa ser incluída.
 
 ## API
 

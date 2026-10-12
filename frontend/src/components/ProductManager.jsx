@@ -120,6 +120,7 @@ export default function ProductManager() {
       <PageHeader Icon={Package} title="Catálogo de Produtos e Serviços" description="Gerencie os itens, custos e preços do seu negócio.">
           <button
             type="button"
+            data-tour="products-new"
             onClick={handleNew}
             className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium shadow-sm transition cursor-pointer"
           >
@@ -140,7 +141,7 @@ export default function ProductManager() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+      <div data-tour="products-list" className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
 
         <div className="p-4 sm:p-6 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="flex flex-1 flex-col sm:flex-row gap-3">
@@ -152,6 +153,7 @@ export default function ProductManager() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                data-tour="products-search"
                 placeholder="Buscar por nome do produto ou serviço..."
                 className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
               />

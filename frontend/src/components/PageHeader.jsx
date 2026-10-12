@@ -6,7 +6,7 @@ import { TourContext } from './TourContext'
 export default function PageHeader({ Icon, title, description, tip, children }) {
   const showTour = useContext(TourContext)
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div data-tour="page-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">

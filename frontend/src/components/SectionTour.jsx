@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import GuidedTour from './GuidedTour'
 import { TourContext } from './TourContext'
 import { MENU_TOURS } from '../data/menuTours'
 
 export default function SectionTour({ section, children }) {
-  // O App remonta este componente por seção para reiniciar o guia ao repeti-lo.
+  const rootRef = useRef(null)
   const storageKey = section === 'accounts' ? 'margemai.accounts-tour.v1' : `margemai.tour.${section}.v1`
   const [open, setOpen] = useState(() => {
     try { return localStorage.getItem(storageKey) !== 'seen' } catch { return true }
@@ -12,11 +12,11 @@ export default function SectionTour({ section, children }) {
   const showTour = useCallback(() => setOpen(true), [])
   const closeTour = useCallback(() => {
     setOpen(false)
-    try { localStorage.setItem(storageKey, 'seen') } catch { /* O guia também funciona sem armazenamento local. */ }
+    try { localStorage.setItem(storageKey, 'seen') } catch { /* Keep the tour available when storage is blocked. */ }
   }, [storageKey])
   const steps = MENU_TOURS[section]
   return <TourContext.Provider value={steps ? showTour : null}>
-    {children}
-    {open && steps && <GuidedTour steps={steps} onClose={closeTour} />}
+    <div ref={rootRef} inert={open && !!steps ? true : undefined} aria-hidden={open && !!steps ? true : undefined}>{children}</div>
+    {open && steps && <GuidedTour rootRef={rootRef} steps={steps} onClose={closeTour} />}
   </TourContext.Provider>
 }

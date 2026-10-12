@@ -61,7 +61,7 @@ export default function CostsDashboard() {
       />
 
       <div>
-        <div className="bg-white/70 backdrop-blur rounded-2xl p-1.5 border border-slate-200 grid grid-cols-2 gap-1 shadow-sm w-full sm:w-auto sm:inline-grid">
+        <div data-tour="costs-tabs" className="bg-white/70 backdrop-blur rounded-2xl p-1.5 border border-slate-200 grid grid-cols-2 gap-1 shadow-sm w-full sm:w-auto sm:inline-grid">
           {tabs.map(({ key, label, Icon }) => (
             <button
               key={key}
@@ -80,6 +80,7 @@ export default function CostsDashboard() {
         </div>
       </div>
 
+      <div data-tour="costs-content">
       {activeTab === 'fixed' && (
         <CostManager
           key="fixed"
@@ -97,6 +98,7 @@ export default function CostsDashboard() {
           products={products}
         />
       )}
+      </div>
     </div>
   )
 }

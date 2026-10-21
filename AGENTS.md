@@ -28,7 +28,7 @@ real output.
 
 ## Workflow: card → branch → commits → PR
 
-Every change starts from a card on the [Margem.AI board (GitHub Project #2)](https://github.com/users/ErickHTF/projects/2).
+Every change starts from a card on the [PPS-margemAI board (GitHub Project #1)](https://github.com/users/Camocardi/projects/1).
 Always use `scripts/card`; prefix with `DRY_RUN=1` to preview.
 
 | Step | Command | Result |

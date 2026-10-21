@@ -9,6 +9,11 @@ export const MENU_TOURS = {
     step('products-list', 'O custo mudou? Revise o item', 'Mantenha custos e preços dos itens atualizados.', 'Se o custo sobe e o preço fica igual, sua margem diminui.'),
     step('products-search', 'Encontre sem perder tempo', 'Busque pelo nome ou filtre por tipo.')
   ],
+  assistant: [
+    step('assistant-suggestions', 'Não sabe por onde começar?', 'Toque em uma pergunta pronta ou escreva a sua.'),
+    step('assistant-conversation', 'Respostas com os seus números', 'O assistente consulta seus produtos, custos, taxas e vendas.', 'Confira em “Calculado com” quais telas foram usadas na conta.'),
+    step('assistant-composer', 'Pergunte do seu jeito', 'Escreva com suas palavras, como falaria com um consultor.')
+  ],
   accounts: [
     step('accounts-new', 'Onde fica seu dinheiro?', 'Cadastre seu banco PJ ou caixa e informe o saldo inicial. Uma conta pode bastar.'),
     step('accounts-movement', 'Entrou ou saiu? Registre', 'Lance aportes, retiradas, pró-labore ou transferências.', 'Confira também as vendas e despesas: elas ainda não entram automaticamente nestas contas.'),

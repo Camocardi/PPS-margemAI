@@ -3,7 +3,7 @@
 
 COMMIT_TYPES="feat fix refactor perf test style docs chore ci build revert"
 SCOPED_TYPES="feat fix refactor perf test style"
-COMMIT_SCOPES="auth perfil produtos categorias custos vendas contas dashboard pricing taxas alerts sebrae tours ui layout menu precision security api db infra devops ci deps docs agentes"
+COMMIT_SCOPES="auth perfil produtos categorias custos vendas contas dashboard pricing taxas alerts sebrae tours ui layout menu precision security api db infra devops ci deps docs agentes assistente"
 CARD_TYPES="US TECH BUG INFRA DOCS"
 BRANCH_PREFIXES="feature fix test refactor chore docs"
 MAX_HEADER_LENGTH=100

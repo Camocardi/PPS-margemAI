@@ -13,7 +13,8 @@ import {
   ChevronRight,
   ShoppingBag,
   CreditCard,
-  BarChart3
+  BarChart3,
+  Bot
 } from 'lucide-react'
 import useAuth from './hooks/useAuth'
 import LoginForm from './components/LoginForm'
@@ -26,6 +27,7 @@ import PricingCalculator from './components/PricingCalculator'
 import SalesManager from './components/SalesManager'
 import PaymentMethodSettings from './components/PaymentMethodSettings'
 import MonthlyFlowDashboard from './components/MonthlyFlowDashboard'
+import AssistantChat from './components/AssistantChat'
 import BusinessAccounts from './components/BusinessAccounts'
 import SectionTour from './components/SectionTour'
 import { DraftContext } from './components/DraftContext'
@@ -49,6 +51,7 @@ const NAV_GROUPS = [
     key: 'finance',
     label: 'Financeiro',
     items: [
+      { key: 'assistant', label: 'Assistente IA', Icon: Bot },
       { key: 'accounts', label: 'Contas Empresariais', Icon: Landmark },
       { key: 'sales', label: 'Vendas', Icon: ShoppingBag },
       { key: 'cashflow', label: 'Fluxo de Caixa', Icon: BarChart3 },
@@ -257,6 +260,8 @@ export default function App() {
         return <BusinessAccounts />
       case 'sales':
         return <SalesManager key={userKey} onNavigate={navigateContext} draft={currentDraft} onDraftChange={saveSaleDraft} onBusyChange={setSaleBusy} />
+      case 'assistant':
+        return <AssistantChat />
       case 'cashflow':
         return <MonthlyFlowDashboard onNavigate={navigateContext} />
       case 'payment-methods':

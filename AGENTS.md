@@ -3,8 +3,8 @@
 The only instructions file for AI coding agents in this repository (`CLAUDE.md` just imports it).
 
 Margem.AI is a pricing, cost and cash-flow tool for Brazilian MEIs (micro-entrepreneurs), based on SEBRAE guidance:
-a Spring Boot REST API (`backend/`) and a React SPA (`frontend/`). Despite the name, it does **not** call any AI/LLM;
-all calculations are deterministic business rules.
+a Spring Boot REST API (`backend/`) and a React SPA (`frontend/`). All calculations are deterministic business rules;
+the optional **Assistente IA** (Claude) only explains them — see *AI assistant* below.
 
 **Language.** This file is in English; the product is Brazilian. UI text, error messages, commits, cards, PRs and test
 names (`@DisplayName`, Vitest descriptions) are in **Brazilian Portuguese**.
@@ -53,7 +53,7 @@ Read the card and the issues it links before coding.
   (the first six require a scope).
 - Scopes: `auth` `perfil` `produtos` `categorias` `custos` `vendas` `contas` `dashboard` (fluxo de caixa) `pricing`
   (markup) `taxas` `alerts` `sebrae` `tours` `ui` `layout` `menu` `precision` `security` `api` `db` `infra` `devops`
-  `ci` `deps` `docs` `agentes`.
+  `ci` `deps` `docs` `agentes` `assistente`.
 - Card ID: `[US-12]`, `[TECH-08]`, `[US-32 a US-35]`.
 - Source of truth: `scripts/lib/conventions.sh` (change it and this list together). Stage files by path, never `git add -A`.
 
@@ -214,6 +214,21 @@ stale responses and maps errors with `getApiErrorMessage` (`services/apiError.js
 
 **Adding an endpoint:** request/response DTOs → service + test → controller + MockMvc test → `openapi.yaml` →
 frontend service method + row in `endpoints.test.js`.
+
+---
+
+## AI assistant (`service/assistant`, screen `AssistantChat`)
+
+- **Numbers come from tools, never from the model.** Each tool in `AssistantTools` calls an existing service with the
+  authenticated `userId`, validates the model's arguments with Bean Validation and returns JSON. The assistant is
+  read-only: never add a tool that creates, updates or deletes records.
+- New tool: definition + `case` + Portuguese label in `LABELS` + test in `AssistantToolsTest`; mention it in the
+  system prompt only if the analysis method changes.
+- Claude is reached only through `ClaudeGateway` (official SDK `com.anthropic:anthropic-java`); tests mock it — never
+  call the real API in tests.
+- Config: `ANTHROPIC_API_KEY` (no key → assistant disabled, 503), `MARGEMAI_AI_MODEL` (default `claude-haiku-5-5`),
+  `MARGEMAI_AI_DAILY_MESSAGE_LIMIT`. Locally in `.env` (git-ignored; template `.env.example`), in production in AWS SSM
+  `/margemai/prod/*`. Never commit a key.
 
 ---
 

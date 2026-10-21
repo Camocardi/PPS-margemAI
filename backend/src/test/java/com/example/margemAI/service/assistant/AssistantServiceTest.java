@@ -246,4 +246,12 @@ class AssistantServiceTest {
         assertEquals(JsonValue.from("default"), sent.getValue()._additionalBodyProperties().get("fallbacks"));
         assertEquals(List.of(AssistantService.FALLBACK_BETA), sent.getValue()._headers().values("anthropic-beta"));
     }
+
+    @Test
+    @DisplayName("Deve embutir a frase fixa de recusa nas instruções da Margô, sem marcador pendente")
+    void shouldEmbedOutOfScopeReplyInSystemPrompt() {
+        assertTrue(AssistantService.SYSTEM_PROMPT.contains("\"" + AssistantService.OUT_OF_SCOPE_REPLY + "\""));
+        assertTrue(!AssistantService.SYSTEM_PROMPT.contains("{RECUSA}"));
+        assertTrue(AssistantService.SYSTEM_PROMPT.startsWith("Escopo"));
+    }
 }

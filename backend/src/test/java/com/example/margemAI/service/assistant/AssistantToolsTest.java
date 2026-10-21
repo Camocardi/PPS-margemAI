@@ -54,6 +54,8 @@ class AssistantToolsTest {
     @Mock private SaleService saleService;
     @Mock private VariableCostService variableCostService;
     @Mock private CategoryService categoryService;
+    @Mock private BusinessProjectionService projectionService;
+    @Mock private BusinessDiagnosisService diagnosisService;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     private AssistantTools tools;
@@ -63,7 +65,7 @@ class AssistantToolsTest {
     void setUp() {
         tools = new AssistantTools(productService, pricingService, dashboardService, alertService,
                 fixedCostProfileService, paymentMethodConfigService, saleService, variableCostService,
-                categoryService, Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
+                categoryService, projectionService, diagnosisService, Clock.fixed(Instant.parse("2026-10-21T12:00:00Z"), ZoneOffset.UTC),
                 objectMapper, Validation.buildDefaultValidatorFactory().getValidator());
         userId = UUID.randomUUID();
     }
@@ -83,6 +85,7 @@ class AssistantToolsTest {
                 JsonValue.from(Map.of("productId", productId.toString(), "desiredMargin", 22.5)), userId);
 
         assertFalse(result.error());
+        assertEquals(AssistantTools.CALCULATE_PRICE, result.card().type());
         assertEquals(0, new BigDecimal("41.37").compareTo(json(result.content()).get("minimumSellingPrice").decimalValue()));
         ArgumentCaptor<PricingRequest> request = ArgumentCaptor.forClass(PricingRequest.class);
         verify(pricingService).calculatePricing(request.capture(), eq(userId));

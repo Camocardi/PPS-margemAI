@@ -217,16 +217,21 @@ frontend service method + row in `endpoints.test.js`.
 
 ---
 
-## AI assistant (`service/assistant`, screen `AssistantChat`)
+## AI assistant — Margô (`service/assistant`; screens `AssistantChat`, `AssistantBubble`, `MargoChat`)
 
 - **Numbers come from tools, never from the model.** Each tool in `AssistantTools` calls an existing service with the
   authenticated `userId`, validates the model's arguments with Bean Validation and returns JSON. The assistant is
   read-only: never add a tool that creates, updates or deletes records.
-- New tool: definition + `case` + Portuguese label in `LABELS` + test in `AssistantToolsTest`; mention it in the
-  system prompt only if the analysis method changes.
+- New tool: definition + `case` + Portuguese label in `LABELS` + test in `AssistantToolsTest`, and a renderer in
+  `AssistantCards.jsx` keyed by the tool name (the card shows the tool's raw result; never let the model write numbers
+  into a card). Mention it in the system prompt only if the analysis method changes.
+- Projection (`BusinessProjectionService`) and diagnosis (`BusinessDiagnosisService`) are deterministic and tested;
+  "good/bad" always compares with platform references (minimum price, recommended fee, MEI cap, configured risk).
+- One conversation per session lives in `AssistantProvider` (shared by the tab and the floating bubble); the bubble
+  sends the current menu key as `screen` for context.
 - Claude is reached only through `ClaudeGateway` (official SDK `com.anthropic:anthropic-java`); tests mock it — never
   call the real API in tests.
-- Config: `ANTHROPIC_API_KEY` (no key → assistant disabled, 503), `MARGEMAI_AI_MODEL` (default `claude-haiku-5-5`),
+- Config: `ANTHROPIC_API_KEY` (no key → assistant disabled, 503), `MARGEMAI_AI_MODEL` (default `claude-sonnet-5-5`, with server-side refusal fallback),
   `MARGEMAI_AI_DAILY_MESSAGE_LIMIT`. Locally in `.env` (git-ignored; template `.env.example`), in production in AWS SSM
   `/margemai/prod/*`. Never commit a key.
 

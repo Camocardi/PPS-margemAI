@@ -6,8 +6,8 @@ export const assistantService = {
     return response.data
   },
 
-  async sendMessage(messages) {
-    const response = await api.post('/assistant/messages', { messages })
+  async sendMessage(messages, screen) {
+    const response = await api.post('/assistant/messages', screen ? { messages, screen } : { messages })
     return response.data
   }
 }

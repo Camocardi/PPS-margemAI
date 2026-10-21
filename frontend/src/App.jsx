@@ -14,7 +14,7 @@ import {
   ShoppingBag,
   CreditCard,
   BarChart3,
-  Bot
+  BotMessageSquare
 } from 'lucide-react'
 import useAuth from './hooks/useAuth'
 import LoginForm from './components/LoginForm'
@@ -28,6 +28,8 @@ import SalesManager from './components/SalesManager'
 import PaymentMethodSettings from './components/PaymentMethodSettings'
 import MonthlyFlowDashboard from './components/MonthlyFlowDashboard'
 import AssistantChat from './components/AssistantChat'
+import AssistantProvider from './components/AssistantProvider'
+import AssistantBubble from './components/AssistantBubble'
 import BusinessAccounts from './components/BusinessAccounts'
 import SectionTour from './components/SectionTour'
 import { DraftContext } from './components/DraftContext'
@@ -51,7 +53,7 @@ const NAV_GROUPS = [
     key: 'finance',
     label: 'Financeiro',
     items: [
-      { key: 'assistant', label: 'Assistente IA', Icon: Bot },
+      { key: 'assistant', label: 'Margô IA', Icon: BotMessageSquare },
       { key: 'accounts', label: 'Contas Empresariais', Icon: Landmark },
       { key: 'sales', label: 'Vendas', Icon: ShoppingBag },
       { key: 'cashflow', label: 'Fluxo de Caixa', Icon: BarChart3 },
@@ -276,6 +278,7 @@ export default function App() {
   }
 
   const renderAuthenticated = () => (
+    <AssistantProvider>
     <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-slate-100 to-indigo-50/30 antialiased">
       <a href="#main-content" onClick={event => { event.preventDefault(); const main = document.getElementById('main-content'); main?.focus(); main?.scrollIntoView() }} className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-xl focus:bg-white focus:p-3 focus:text-indigo-700 focus:shadow-lg">Ir para o conteúdo</a>
       <aside className="hidden lg:flex lg:flex-col lg:w-72 lg:sticky lg:top-0 lg:h-screen shrink-0 border-r border-slate-200 bg-white/80 backdrop-blur">
@@ -395,7 +398,9 @@ export default function App() {
         onConfirm={confirmLeave}
         onCancel={cancelLeave}
       />
+      <AssistantBubble screen={activeSection} onOpenFull={() => navigateTo('assistant')} />
     </div>
+    </AssistantProvider>
   )
 
   const renderGuestContent = () => {

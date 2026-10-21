@@ -10,9 +10,9 @@ export const MENU_TOURS = {
     step('products-search', 'Encontre sem perder tempo', 'Busque pelo nome ou filtre por tipo.')
   ],
   assistant: [
-    step('assistant-suggestions', 'Não sabe por onde começar?', 'Toque em uma pergunta pronta ou escreva a sua.'),
-    step('assistant-conversation', 'Respostas com os seus números', 'O assistente consulta seus produtos, custos, taxas e vendas.', 'Confira em “Calculado com” quais telas foram usadas na conta.'),
-    step('assistant-composer', 'Pergunte do seu jeito', 'Escreva com suas palavras, como falaria com um consultor.')
+    step('assistant-suggestions', 'Comece pelo diagnóstico', 'Peça para a Margô analisar seu negócio ou projetar os próximos meses.'),
+    step('assistant-conversation', 'Respostas com os seus números', 'A Margô consulta produtos, custos, taxas e vendas e mostra cartões com os valores exatos.', 'Confira em “Calculado com” quais telas foram usadas na conta.'),
+    step('assistant-composer', 'Pergunte do seu jeito', 'Escreva como falaria com uma consultora. Ela também está no balão de todas as telas.')
   ],
   accounts: [
     step('accounts-new', 'Onde fica seu dinheiro?', 'Cadastre seu banco PJ ou caixa e informe o saldo inicial. Uma conta pode bastar.'),

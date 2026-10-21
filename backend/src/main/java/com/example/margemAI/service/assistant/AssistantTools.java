@@ -5,6 +5,7 @@ import com.anthropic.models.messages.Tool;
 import com.example.margemAI.dto.request.BreakEvenRequest;
 import com.example.margemAI.dto.request.PricingRequest;
 import com.example.margemAI.dto.request.SimulateDiscountRequest;
+import com.example.margemAI.dto.response.AssistantCard;
 import com.example.margemAI.dto.response.CategoryResponse;
 import com.example.margemAI.dto.response.PaymentMethodConfigResponse;
 import com.example.margemAI.dto.response.ProductResponse;
@@ -30,6 +31,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,6 +56,8 @@ public class AssistantTools {
     public static final String SALES_SUMMARY = "resumo_vendas";
     public static final String VARIABLE_COSTS = "custos_variaveis";
     public static final String PRICE_STANDARDS = "padroes_de_preco";
+    public static final String PROJECTION = "projecao_futura";
+    public static final String DIAGNOSIS = "diagnostico_negocio";
 
     private static final int DEFAULT_SALES_DAYS = 90;
 
@@ -68,7 +72,9 @@ public class AssistantTools {
             Map.entry(PAYMENT_FEES, "Taxas de pagamento configuradas"),
             Map.entry(SALES_SUMMARY, "Vendas por forma de pagamento"),
             Map.entry(VARIABLE_COSTS, "Custos variáveis"),
-            Map.entry(PRICE_STANDARDS, "Padrões de preço")
+            Map.entry(PRICE_STANDARDS, "Padrões de preço"),
+            Map.entry(PROJECTION, "Projeção dos próximos meses"),
+            Map.entry(DIAGNOSIS, "Diagnóstico do negócio")
     );
 
     private final ProductService productService;
@@ -80,6 +86,8 @@ public class AssistantTools {
     private final SaleService saleService;
     private final VariableCostService variableCostService;
     private final CategoryService categoryService;
+    private final BusinessProjectionService projectionService;
+    private final BusinessDiagnosisService diagnosisService;
     private final Clock clock;
     private final ObjectMapper objectMapper;
     private final Validator validator;
@@ -94,6 +102,8 @@ public class AssistantTools {
                           SaleService saleService,
                           VariableCostService variableCostService,
                           CategoryService categoryService,
+                          BusinessProjectionService projectionService,
+                          BusinessDiagnosisService diagnosisService,
                           Clock clock,
                           ObjectMapper objectMapper,
                           Validator validator) {
@@ -106,6 +116,8 @@ public class AssistantTools {
         this.saleService = saleService;
         this.variableCostService = variableCostService;
         this.categoryService = categoryService;
+        this.projectionService = projectionService;
+        this.diagnosisService = diagnosisService;
         this.clock = clock;
         this.objectMapper = objectMapper;
         this.validator = validator;
@@ -116,12 +128,17 @@ public class AssistantTools {
         return definitions;
     }
 
-    public record ToolResult(String content, boolean error) {
+    public record ToolResult(String content, boolean error, AssistantCard card) {
+
+        public ToolResult(String content, boolean error) {
+            this(content, error, null);
+        }
     }
 
     public ToolResult run(String name, JsonValue input, UUID userId) {
         try {
-            return new ToolResult(toJson(execute(name, input.convert(Map.class), userId)), false);
+            Object result = execute(name, input.convert(Map.class), userId);
+            return new ToolResult(toJson(result), false, new AssistantCard(name, LABELS.get(name), result));
         } catch (AssistantToolException | InvalidRequestException | ResourceNotFoundException
                  | InvalidFinancialCalculationException | IllegalArgumentException ex) {
             return new ToolResult("Erro: " + ex.getMessage(), true);
@@ -151,6 +168,11 @@ public class AssistantTools {
             case PRICE_STANDARDS -> categoryService.findAll(userId, null, true, null, 0, 100).getContent().stream()
                     .map(this::summarize)
                     .toList();
+            case PROJECTION -> projectionService.project(userId,
+                    args.get("meses") instanceof Number months ? months.intValue() : 6,
+                    decimal(args.get("ajustePrecoPercentual")),
+                    decimal(args.get("migrarCartaoParaPixPercentual")));
+            case DIAGNOSIS -> diagnosisService.diagnose(userId);
             default -> throw new AssistantToolException("Ferramenta desconhecida: " + name);
         };
     }
@@ -236,8 +258,13 @@ public class AssistantTools {
         summary.put("custoBaseEfetivo", product.getEffectiveBaseCost());
         summary.put("precoVenda", product.getSellingPrice());
         summary.put("margemPercentual", product.getMarginPercentage());
+        summary.put("margemAlvoPercentual", product.getTargetProfitMargin());
         summary.put("padraoDePreco", product.getCategoryName());
         return summary;
+    }
+
+    private static BigDecimal decimal(Object value) {
+        return value instanceof Number number ? new BigDecimal(number.toString()) : null;
     }
 
     private <T> T read(Map<String, Object> args, Class<T> type) {
@@ -328,6 +355,21 @@ public class AssistantTools {
                         List.of()),
                 tool(PRICE_STANDARDS,
                         "Lista os padrões de preço com margem alvo, impostos, desconto máximo e despesas variáveis.",
+                        Map.of(),
+                        List.of()),
+                tool(PROJECTION,
+                        "Projeta faturamento, despesas e resultado dos próximos meses a partir do histórico real, "
+                                + "com a data estimada em que o teto do MEI seria atingido. Aceita cenários \"e se\": "
+                                + "ajuste de preço e migração de vendas do cartão para o Pix. Devolve as hipóteses usadas.",
+                        Map.of(
+                                "meses", prop("integer", "Horizonte da projeção em meses (3 a 12). Padrão 6."),
+                                "ajustePrecoPercentual", prop("number", "Cenário: variação dos preços em % (-50 a 100), mantendo a quantidade vendida."),
+                                "migrarCartaoParaPixPercentual", prop("number", "Cenário: % das taxas de cartão evitadas migrando vendas para o Pix (0 a 100).")),
+                        List.of()),
+                tool(DIAGNOSIS,
+                        "Faz o diagnóstico completo do negócio: nota de 0 a 100 e situação (OK, ATENCAO, CRITICO) de "
+                                + "preços contra o preço mínimo, taxas de maquininha, resultado mensal, custos fixos e teto do MEI. "
+                                + "Use primeiro em pedidos de análise geral.",
                         Map.of(),
                         List.of())
         );

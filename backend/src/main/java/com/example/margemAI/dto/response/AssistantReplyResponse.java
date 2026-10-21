@@ -15,6 +15,7 @@ public class AssistantReplyResponse {
 
     private String reply;
     private List<String> toolsUsed;
+    private List<AssistantCard> cards;
     private String model;
     private long inputTokens;
     private long outputTokens;

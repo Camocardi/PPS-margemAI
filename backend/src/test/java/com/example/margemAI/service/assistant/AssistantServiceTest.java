@@ -86,7 +86,7 @@ class AssistantServiceTest {
         for (int i = 0; i < turns.length; i++) {
             messages.add(new AssistantMessageRequest(i % 2 == 0 ? "user" : "assistant", turns[i]));
         }
-        return new AssistantChatRequest(messages);
+        return new AssistantChatRequest(messages, null);
     }
 
     @Test
@@ -96,10 +96,13 @@ class AssistantServiceTest {
         when(gateway.send(any()))
                 .thenReturn(toolUse("toolu_77", AssistantTools.CALCULATE_PRICE, "{\"baseCost\":23.4}", 1200, 85))
                 .thenReturn(text("O preço mínimo é R$ 41,37.", "end_turn", 1650, 140));
+        com.example.margemAI.dto.response.AssistantCard card = new com.example.margemAI.dto.response.AssistantCard(
+                AssistantTools.CALCULATE_PRICE, "Calculadora Markup (SEBRAE)", java.util.Map.of("minimumSellingPrice", 41.37));
         when(tools.run(eq(AssistantTools.CALCULATE_PRICE), any(JsonValue.class), eq(userId)))
-                .thenReturn(new AssistantTools.ToolResult("{\"minimumSellingPrice\":41.37}", false));
+                .thenReturn(new AssistantTools.ToolResult("{\"minimumSellingPrice\":41.37}", false, card));
 
         AssistantReplyResponse reply = service.reply(userId, ask("Qual o preço ideal para custo de R$ 23,40?"));
+        assertEquals(List.of(card), reply.getCards());
 
         assertEquals("O preço mínimo é R$ 41,37.", reply.getReply());
         assertEquals(List.of("Calculadora Markup (SEBRAE)"), reply.getToolsUsed());
@@ -205,5 +208,42 @@ class AssistantServiceTest {
         verify(gateway).send(sent.capture());
         assertEquals("claude-haiku-5-5", sent.getValue().model().asString());
         assertEquals(AssistantTools.MEI_CAP, sent.getValue().tools().get().get(0).asTool().name());
+    }
+
+    @Test
+    @DisplayName("Deve informar ao Claude em qual tela o usuário está")
+    void shouldAddScreenContextToLastUserMessage() {
+        when(gateway.isConfigured()).thenReturn(true);
+        when(gateway.send(any())).thenReturn(text("Esse preço cobre seus custos.", "end_turn", 200, 30));
+
+        service.reply(userId, new AssistantChatRequest(
+                List.of(new AssistantMessageRequest("user", "Esse preço está bom?")), "pricing"));
+
+        ArgumentCaptor<MessageCreateParams> sent = ArgumentCaptor.forClass(MessageCreateParams.class);
+        verify(gateway).send(sent.capture());
+        String content = sent.getValue().messages().get(0).content().asString();
+        assertTrue(content.startsWith("Esse preço está bom?"));
+        assertTrue(content.contains("«Calculadora Markup»"));
+    }
+
+    @Test
+    @DisplayName("Deve pedir fallback do servidor só para modelos que o suportam")
+    void shouldRequestServerFallbackOnlyForSupportedModels() {
+        assertTrue(AssistantService.supportsServerFallback("claude-sonnet-5-5"));
+        assertTrue(AssistantService.supportsServerFallback("claude-opus-5-5"));
+        assertEquals(false, AssistantService.supportsServerFallback("claude-haiku-5-5"));
+
+        AssistantProperties sonnet = new AssistantProperties("chave", "claude-sonnet-5-5", 8000, 3, 20, 30);
+        AssistantService sonnetService = new AssistantService(gateway, tools,
+                new AssistantUsageLimiter(sonnet, java.time.Clock.systemUTC()), sonnet);
+        when(gateway.isConfigured()).thenReturn(true);
+        when(gateway.send(any())).thenReturn(text("Ok.", "end_turn", 10, 2));
+
+        sonnetService.reply(userId, ask("Oi"));
+
+        ArgumentCaptor<MessageCreateParams> sent = ArgumentCaptor.forClass(MessageCreateParams.class);
+        verify(gateway).send(sent.capture());
+        assertEquals(JsonValue.from("default"), sent.getValue()._additionalBodyProperties().get("fallbacks"));
+        assertEquals(List.of(AssistantService.FALLBACK_BETA), sent.getValue()._headers().values("anthropic-beta"));
     }
 }

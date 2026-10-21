@@ -7,19 +7,13 @@ import useApiResource from './useApiResource'
 export function useAssistant() {
   const { data: status, loading: loadingStatus, error: statusError, setData: setStatus } = useApiResource(
     () => assistantService.getStatus(), [],
-    { errorMessage: 'Não foi possível verificar o assistente.' }
+    { errorMessage: 'Não foi possível verificar a Margô.' }
   )
   const [messages, setMessages] = useState([])
   const [sending, setSending] = useState(false)
   const nextId = useRef(1)
 
-  const append = (message) => {
-    const entry = { id: nextId.current++, ...message }
-    setMessages((current) => [...current, entry])
-    return entry
-  }
-
-  const send = async (text) => {
+  const send = async (text, screen) => {
     const content = text.trim()
     if (!content || sending) return
     const question = { id: nextId.current++, role: 'user', content }
@@ -27,15 +21,22 @@ export function useAssistant() {
     setMessages((current) => [...current, question])
     setSending(true)
     try {
-      const reply = await assistantService.sendMessage(history)
-      append({ role: 'assistant', content: reply.reply, toolsUsed: reply.toolsUsed || [] })
+      const reply = await assistantService.sendMessage(history, screen)
+      setMessages((current) => [...current, {
+        id: nextId.current++,
+        role: 'assistant',
+        content: reply.reply,
+        toolsUsed: reply.toolsUsed || [],
+        cards: reply.cards || []
+      }])
       setStatus((current) => (current ? { ...current, remainingToday: reply.remainingToday } : current))
     } catch (err) {
-      append({
+      setMessages((current) => [...current, {
+        id: nextId.current++,
         role: 'assistant',
-        content: getApiErrorMessage(err, 'Não foi possível falar com o assistente agora.'),
+        content: getApiErrorMessage(err, 'Não foi possível falar com a Margô agora.'),
         error: true
-      })
+      }])
     } finally {
       setSending(false)
     }
